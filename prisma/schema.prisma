@@ -1,0 +1,185 @@
+// Modelado de la BD
+
+// Genera el cliente TypeScript
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+// Es la conexión a la BD (en este caso, MySQL y la url que está en .env)
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+
+// Definición de las estructuras de la BD
+
+// ---------- Modelo para los usuarios ----------
+
+// id (PK) - nombre - email(unique) - contraseña hasheada - role(toma del enum) - si esta activo - cuando fue creado/modificado
+// books    Book[] -> relacion de uno a muchos: un usuario pude tener muchos libros
+
+model User {
+  id            Int       @id @default(autoincrement())
+  name          String
+  email         String    @unique
+  passwordHash  String    @map("password_hash")
+  role          Role      @default(USER)
+  isActive      Boolean   @default(true) @map("is_active")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  books         Book[]
+  collections   Collection[]
+  readingStatus ReadingStatus[]
+  reviews       Review[]
+
+  @@map("users")
+}
+
+
+// ---------- Modelo para los libros ----------
+
+// id(PK) - user_id(FK -> users) el dueño del libro - titulo - autor - genero - año publi - formato(enum)
+// isbn - editorial - lenguaje - paginas - portada 
+// nombre de serie - orden en la serie - ruta local (si es digital) - etiquetas - fecha de creacion/modificacion
+// flag ? -> marca el campo como opcional (puede ser null)
+
+model Book {
+  id            Int        @id @default(autoincrement())
+  userId        Int        @map("user_id")
+  title         String
+  author        String
+  genre         String?
+  year          Int?
+  format        Format
+  isbn          String?
+  publisher     String?
+  language      String?
+  pages         Int?
+  coverUrl      String?     @map("cover_url")
+  seriesName    String?     @map("series_name")
+  seriesOrder   Int?        @map("series_order")
+  filePath      String?     @map("file_path")
+  tags          Json?
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  user          User        @relation(fields: [userId], references: [id])
+  collections   BookCollection[]
+  loans         Loan[]
+  reviews       Review[]
+  readingStatus ReadingStatus[]
+
+  @@map("books")
+}
+
+
+// ---------- Entidad para las colecciones -----------
+// Cada usuario puede crear sus propias colecciones de libros (p. ej: "libros favoritos")
+
+model Collection {
+  id             Int         @id @default(autoincrement())
+  userId         Int         @map("user_id")
+  name           String
+  description    String?
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  user           User        @relation(fields: [userId], references: [id])
+  books          BookCollection[]
+
+  @@map("collections")
+}
+
+
+// ---------- Tabla pivot ----------
+// Representa la relacion de un libro con las colecciones
+
+model BookCollection {
+  bookId         Int          @map("book_id")
+  collectionId   Int          @map("collection_id")
+
+  book           Book         @relation(fields: [bookId], references: [id])
+  collection     Collection   @relation(fields: [collectionId], references: [id])
+
+  @@id([bookId, collectionId])
+  @@map("book_collections") 
+}
+
+
+// ---------- Estado de la lectura ----------
+
+model ReadingStatus {
+  id             Int           @id @default(autoincrement())
+  userId         Int           @map("user_id")
+  bookId         Int           @map("book_id")
+  status         Status
+  startedAt      DateTime?     @map("started_at")
+  finishedAt     DateTime?     @map("finished_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  user  User   @relation(fields: [userId], references: [id])
+  book  Book   @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("reading_status")
+}
+
+
+// ---------- Esquema para prestamos ----------
+
+model Loan {
+  id             Int            @id @default(autoincrement())
+  bookId         Int            @map("book_id")
+  borrowerName   String         @map("borrower_name")
+  loanedAt       DateTime       @default(now()) @map("loaned_at")
+  returnedAt     DateTime?      @map("returned_at")
+  notes          String?
+
+  book  Book  @relation(fields: [bookId], references: [id])
+
+  @@map("loans")
+}
+
+
+// ---------- Esquema para las reseñas personales ------------
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  userId    Int      @map("user_id")
+  bookId    Int      @map("book_id")
+  rating    Int
+  body      String?  @db.Text
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  book Book @relation(fields: [bookId], references: [id])
+
+  @@unique([userId, bookId])
+  @@map("reviews")
+}
+
+
+
+// Roles que hay:
+// user -> usuario comun
+// admin -> puede listar, activar/desactivar usuarios
+enum Role {
+  ADMIN
+  USER
+}
+
+// Los libros pueden ser de un tipo: o digitales o fisicos
+enum Format {
+  PHYSICAL
+  DIGITAL
+}
+
+// Categorias para los libros: por leer, leyendo o leido
+enum Status {
+  WANT_TO_READ
+  READING
+  READ
+}
