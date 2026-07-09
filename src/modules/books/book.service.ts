@@ -83,3 +83,28 @@ export async function getBookById(userId: number, bookId: number) {
 }
 
 
+// ACTUALIZAR LIBRO ------------------------------------
+export async function updateBook(
+    userId: number,
+    bookId: number,
+    input: UpdateBookInput
+) {
+    await getBookById(userId, bookId)
+
+    const updated = await prisma.book.update({
+        where: { id: bookId},
+        data: input,
+    })
+
+    return updated
+}
+
+
+// ELIMINAR LIBRO ---------------------------------------
+export async function deleteBook(userId: number, bookId: number) {
+    await getBookById(userId, bookId)
+
+    await prisma.book.delete({
+        where: { id: bookId }
+    })
+}
