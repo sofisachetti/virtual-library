@@ -9,6 +9,7 @@ import {
 import { CreateBookInput, UpdateBookInput } from './book.schema'
 import { Format } from '../../generated/prisma'
 
+
 export async function create(
     req: Request,
     res: Response,
@@ -24,4 +25,25 @@ export async function create(
     }
 }
 
+
+export async function list(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        // los filtros para listar van a vernir como query params
+        const { format, genre, language, search } = req.query
+
+        const books = await getBooks(req.user!.id, {
+            format: format as Format | undefined,
+            genre: genre as string | undefined,
+            language: language as string | undefined,
+            search: search as string | undefined,
+        })
+        res.json(books)
+    } catch (err) {
+        next(err)
+    }
+}
 
