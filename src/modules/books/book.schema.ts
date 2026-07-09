@@ -7,7 +7,7 @@ export const createBookSchema = z.object({
     // Son los tres campos principales que deben ser si o si obligatorios
     title: z.string().min(1, 'El título es requerido'),
     author: z.string().min(1, 'El autor es requerido'),
-    formate: formatEnum,
+    format: formatEnum,
 
     // Campos que pueden ser opcionales
     genre: z.string().optional(),
