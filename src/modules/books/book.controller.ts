@@ -47,3 +47,75 @@ export async function list(
     }
 }
 
+
+export async function getOne(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        // en este caso las params van a venir en la URL como string, por lo cual hay que convertirlos
+        const bookId = parseInt(req.params.id as string)
+
+        if (isNaN(bookId)) {
+            res.status(400).json({ message: 'ID inválido'})
+            return
+        }
+
+        const book = await getBookById(req.user!.id, bookId)
+        res.json(book)
+    } catch (err) {
+        next(err)
+    }
+}
+
+
+export async function update(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const bookId = parseInt(req.params.id as string)
+
+        if (isNaN(bookId)) {
+            res.status(400).json({ message: 'ID inválido'})
+            return
+        }
+
+        const book = await updateBook(
+            req.user!.id,
+            bookId,
+            req.body as UpdateBookInput
+        )
+        res.json(book)
+    } catch (err) {
+        next(err)
+    }
+}
+
+
+export async function remove(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const bookId = parseInt(req.params.id as string)
+
+        if (isNaN(bookId)) {
+            res.status(400).json({ message: 'ID inválido'})
+            return
+        }
+
+        await deleteBook(req.user!.id, bookId)
+
+        // codigo 201 en la rta -> es el estandar para op delete exitosas
+        // 201 No Content -> exito pero sin cuerpo
+        res.status(204).send()
+    } catch (err) {
+        next(err)
+    }
+}
+
+
