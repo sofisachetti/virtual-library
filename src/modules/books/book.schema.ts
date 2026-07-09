@@ -20,9 +20,6 @@ export const createBookSchema = z.object({
     seriesName: z.string().optional(),
     seriesOrder: z.number().int().positive().optional(),
 
-    // esto va a ser solo relevante para libros digitales, ya que crea un filepath para encontrarlo
-    filePath: z.string().optional(),
-
     // array de strings para las etiquetas
     tags: z.array(z.string()).optional(),
 })
