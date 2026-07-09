@@ -19,7 +19,7 @@ export async function createBook(userId: number, input: CreateBookInput) {
 
 
 // LISTAR LOS LIBROS -------------------------------
-export async function getbooks(
+export async function getBooks(
     userId: number,
     filters: {
         format?: 'PHYSICAL' | 'DIGITAL'
