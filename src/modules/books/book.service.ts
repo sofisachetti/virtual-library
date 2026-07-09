@@ -17,6 +17,7 @@ export async function createBook(userId: number, input: CreateBookInput) {
     return book
 }
 
+
 // LISTAR LOS LIBROS -------------------------------
 export async function getbooks(
     userId: number,
@@ -49,4 +50,36 @@ export async function getbooks(
         })
         return books
 }
+
+
+// OBTENER UN LIBRO POR ID------------------------------------
+export async function getBookById(userId: number, bookId: number) {
+    const book = await prisma.book.findUnique({
+        where: { id: bookId },
+        // se incluyen tambien las colecciones a las que pertenece el libro
+        include: {
+            collections: {
+                include: {
+                    collection: {
+                        select: { id: true, name: true},
+                    },
+                },
+            },
+        },
+    })
+
+    // si el libro no existe se lanza error
+    if (!book) {
+        throw new ApiError(404, 'Libro no encontrado')
+    }
+
+    // se hace verifiacion de que el libro pertenezca al usuario autenticado
+    // va a evitar que un usuario acceda a los libros de otros usuarios
+    if (book.userId !== userId) {
+        throw new ApiError(403, 'No tenés permisos para ver este libro')
+    }
+
+    return book
+}
+
 
