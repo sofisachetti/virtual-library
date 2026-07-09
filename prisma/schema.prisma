@@ -61,7 +61,6 @@ model Book {
   coverUrl      String?     @map("cover_url")
   seriesName    String?     @map("series_name")
   seriesOrder   Int?        @map("series_order")
-  filePath      String?     @map("file_path")
   tags          Json?
   createdAt     DateTime    @default(now()) @map("created_at")
   updatedAt     DateTime    @updatedAt @map("updated_at")
