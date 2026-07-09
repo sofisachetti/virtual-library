@@ -14,7 +14,7 @@ export const createBookSchema = z.object({
     year: z.number().int().min(1000).max(new Date().getFullYear()).optional(),
     isbn: z.string().optional(),
     publisher: z.string().optional(),
-    languaje: z.string().optional(),
+    language: z.string().optional(),
     pages: z.number().int().positive().optional(),
     coverUrl: z.string().optional(),
     seriesName: z.string().optional(),
