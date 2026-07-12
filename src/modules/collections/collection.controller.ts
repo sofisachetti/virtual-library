@@ -29,3 +29,16 @@ export async function create(
 }
 
 
+// LISTAR ------------------------------------------------------------
+export async function list(
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> {
+    try {
+        const collections = await getCollections(req.user!.id)
+        res.json(collections)
+    } catch (err) {
+        next(err)
+    }
+}
